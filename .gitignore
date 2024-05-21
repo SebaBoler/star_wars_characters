@@ -1,0 +1,15 @@
+.idea/
+
+.DS_Store
+
+/build/
+
+/test-results/
+
+*.config
+
+*.tmp
+
+*.log
+
+/node_modules/
