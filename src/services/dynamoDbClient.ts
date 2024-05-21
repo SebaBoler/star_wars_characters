@@ -1,7 +1,10 @@
 import { DynamoDB } from "aws-sdk";
+import { DynamoDBDocumentClient } from "@aws-sdk/lib-dynamodb";
 import { Character } from "../models/character";
 
-const dynamoDb = new DynamoDB.DocumentClient();
+const dynamoDb = new DynamoDB.DocumentClient({ region: "eu-central-1" });
+export const dynamoDBDocumentClient = DynamoDBDocumentClient.from(dynamoDb);
+
 const TABLE_NAME = process.env.TABLE_NAME ?? "Characters";
 
 async function putItem(item: Character): Promise<void> {
