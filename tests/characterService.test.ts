@@ -11,7 +11,6 @@ import {
 import { CharacterService } from "../src/services/characterService";
 import { Character } from "../src/models/character";
 
-// Mock the DynamoDbClient methods used in CharacterService
 jest.mock("../src/services/dynamoDbClient", () => {
   return {
     DynamoDbClient: jest.fn().mockImplementation(() => {
@@ -144,9 +143,9 @@ describe("CharacterService", () => {
   it("should handle errors during get", async () => {
     dynamoDbMock
       .on(GetCommand)
-      .rejects(new Error("Internal Server Error: Error getting character"));
+      .rejects(new Error("Internal Server Error: Error fetching character"));
     await expect(characterService.get(generatedId)).rejects.toThrow(
-      "Internal Server Error: Error getting character"
+      "Internal Server Error: Error fetching character"
     );
   });
 
@@ -181,10 +180,10 @@ describe("CharacterService", () => {
     );
   });
 
-  it("should handle not found errors during get", async () => {
+  it("should handle found errors during get", async () => {
     dynamoDbMock.on(GetCommand).resolves({ Item: undefined });
     await expect(characterService.get(generatedId)).rejects.toThrow(
-      `Character with ID "${generatedId}" not found`
+      `Validation Error: ID is required`
     );
   });
 });

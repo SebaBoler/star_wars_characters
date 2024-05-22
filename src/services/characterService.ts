@@ -4,6 +4,7 @@ import { DynamoDbClient } from "./dynamoDbClient";
 
 export class CharacterService {
   private readonly dynamoDbClient: DynamoDbClient;
+
   constructor() {
     this.dynamoDbClient = new DynamoDbClient();
   }
@@ -24,6 +25,9 @@ export class CharacterService {
 
   async get(id: string): Promise<Character> {
     try {
+      if (!id) {
+        throw new Error("Validation Error: ID is required");
+      }
       const character = await this.dynamoDbClient.get(id);
       if (!character) {
         throw new Error(`Character with ID "${id}" not found`);
@@ -58,12 +62,13 @@ export class CharacterService {
     }
   }
 
-  async delete(id: string): Promise<void> {
+  async delete(id: string): Promise<Character> {
     try {
       const deletedCharacter = await this.dynamoDbClient.delete(id);
       if (!deletedCharacter) {
         throw new Error(`Character with ID "${id}" not found`);
       }
+      return deletedCharacter;
     } catch (error) {
       console.error("Error deleting character", error);
       throw new Error("Internal Server Error: Error deleting character");
