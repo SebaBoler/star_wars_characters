@@ -85,12 +85,12 @@ This project provides a robust backend for managing Star Wars characters, follow
 
 I did some benchmark with NestJs on Serverless with TypeORM and Prism but finally score was not within my acceptance criteria.
 
-Clear Typescript: score in few operations CRUD ~ 0.0338
-NestJs with TypeORM: score in few operation CRUD ~ 0.996
-NestJs with Prisma: score in fee operation CRUD - 0.881
-**SOON** NestJs with DrizzleORM
+- Clear Typescript: score in few operations CRUD ~ 0.0338
+- NestJs with TypeORM: score in few operation CRUD ~ 0.996
+- NestJs with Prisma: score in fee operation CRUD - 0.881
+- **SOON** NestJs with DrizzleORM
 
-## Why not **serverless** **framework** with plugins ?  
+## Why not **serverless** **framework** with plugins ?
 
 [Serverless Framework](https://www.serverless.com/) is a powerful tool for developing serverless applications, but it is not always the best choice. Here are a few reasons why you might be better off writing code without Serverless Framework:
 
@@ -109,4 +109,3 @@ However, remember that Serverless Framework has many advantages and can make it 
 ## **Extra**
 
 Ye, you will find some hardcode value. However, they will disappear.
-
