@@ -21,8 +21,6 @@ const dynamoDb = new DynamoDBClient({
 });
 export const dynamoDBDocumentClient = DynamoDBDocumentClient.from(dynamoDb);
 
-// const TABLE_NAME = process.env.TABLE_NAME ?? "Characters";
-
 export class DynamoDbClient {
   private readonly tableName = "Characters";
 
