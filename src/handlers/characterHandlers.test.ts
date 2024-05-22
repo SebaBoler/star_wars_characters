@@ -44,14 +44,17 @@ describe("CharacterService", () => {
 
   it("should not create a character without a name", async () => {
     await expect(
-      characterService.create({ episodes: ["NEWHOPE", "EMPIRE", "JEDI"] })
+      characterService.create({
+        name: "",
+        episodes: ["NEWHOPE", "EMPIRE", "JEDI"],
+      })
     ).rejects.toThrow("Validation Error: Name and episodes are required");
   });
 
   it("should not create a character without episodes", async () => {
-    await expect(characterService.create({ name: "Han Solo" })).rejects.toThrow(
-      "Validation Error: Name and episodes are required"
-    );
+    await expect(
+      characterService.create({ name: "Han Solo", episodes: [] })
+    ).rejects.toThrow("Validation Error: Name and episodes are required");
   });
 
   it("should handle errors during creation", async () => {
@@ -76,7 +79,7 @@ describe("CharacterService", () => {
 
     dynamoDbMock.on(GetCommand).resolves({ Item: mockCharacter });
 
-    const character = await characterService.findOne(generatedId);
+    const character = await characterService.get(generatedId);
     expect(character).toEqual(mockCharacter);
   });
 
@@ -92,8 +95,9 @@ describe("CharacterService", () => {
 
     dynamoDbMock.on(ScanCommand).resolves({ Items: mockCharacters });
 
-    const characters = await characterService.findAll();
+    const characters = await characterService.list(10);
     expect(characters).toEqual(mockCharacters);
+    expect(characters.characters.length).toBe(1);
   });
 
   it("should update a character", async () => {
