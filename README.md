@@ -61,8 +61,8 @@ AWS_SECRET_ACCESS_KEY=
 ### Usage Addresses
 
 ```
-**Server Restful**: http://localhost:3000
-**Swagger**:        http://localhost:3000/api-docs/#/
+Server Restful: http://localhost:3000
+Swagger:        http://localhost:3000/api-docs/#/
 ```
 
 ## Best Practices
@@ -78,8 +78,6 @@ Open/Closed Principle: Classes should be open for extension but closed for modif
 Liskov Substitution Principle: Subtypes must be substitutable for their base types.
 Interface Segregation Principle: Clients should not be forced to depend on interfaces they do not use.
 Dependency Inversion Principle: Depend on abstractions, not on concretions.
-
-```
 
 ## **Conclusion** and **Benchmark**
 
@@ -111,4 +109,3 @@ However, remember that Serverless Framework has many advantages and can make it 
 ## **Extra**
 
 Ye, you will find some hardcode value. However, they will disappear.
-```
