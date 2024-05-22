@@ -11,6 +11,6 @@
     "emitDecoratorMetadata": true,
     "strictPropertyInitialization": false
   },
-  "include": ["src/**/*.ts"],
+  "include": ["src/**/*.ts", "tests/characterService.test.ts"],
   "exclude": ["node_modules"]
 }

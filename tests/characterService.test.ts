@@ -8,10 +8,25 @@ import {
   UpdateCommand,
   DeleteCommand,
 } from "@aws-sdk/lib-dynamodb";
-import { CharacterService } from "../services/characterService";
+import { CharacterService } from "../src/services/characterService";
+import { Character } from "../src/models/character";
+
+// Mock the DynamoDbClient methods used in CharacterService
+jest.mock("../src/services/dynamoDbClient", () => {
+  return {
+    DynamoDbClient: jest.fn().mockImplementation(() => {
+      return {
+        put: jest.fn(),
+        get: jest.fn(),
+        scan: jest.fn(),
+        update: jest.fn(),
+        delete: jest.fn(),
+      };
+    }),
+  };
+});
 
 const dynamoDbMock = mockClient(DynamoDBDocumentClient);
-
 const characterService = new CharacterService();
 
 describe("CharacterService", () => {
@@ -21,8 +36,8 @@ describe("CharacterService", () => {
     dynamoDbMock.reset();
   });
 
-  it("should create a character", async () => {
-    const mockCharacter = {
+  it("should create a new character", async () => {
+    const newCharacter = {
       name: "Han Solo",
       episodes: ["NEWHOPE", "EMPIRE", "JEDI"],
       planet: "Tatooine",
@@ -30,30 +45,24 @@ describe("CharacterService", () => {
 
     dynamoDbMock.on(PutCommand).resolves({});
 
-    const character = await characterService.create({
-      name: "Han Solo",
-      episodes: ["NEWHOPE", "EMPIRE", "JEDI"],
-      planet: "Tatooine",
-    });
+    const character = await characterService.create(newCharacter);
 
+    expect(character).toHaveProperty("id");
+    expect(character).toMatchObject(newCharacter);
     generatedId = character.id;
-    const { id, ...characterWithoutId } = character;
-
-    expect(characterWithoutId).toMatchObject(mockCharacter);
   });
 
   it("should not create a character without a name", async () => {
     await expect(
       characterService.create({
-        name: "",
         episodes: ["NEWHOPE", "EMPIRE", "JEDI"],
-      })
+      } as Omit<Character, "id">)
     ).rejects.toThrow("Validation Error: Name and episodes are required");
   });
 
   it("should not create a character without episodes", async () => {
     await expect(
-      characterService.create({ name: "Han Solo", episodes: [] })
+      characterService.create({ name: "Han Solo" } as Omit<Character, "id">)
     ).rejects.toThrow("Validation Error: Name and episodes are required");
   });
 
@@ -69,9 +78,9 @@ describe("CharacterService", () => {
     ).rejects.toThrow("Internal Server Error: Error creating character");
   });
 
-  it("should get a character", async () => {
+  it("should get a character by ID", async () => {
     const mockCharacter = {
-      id: "1",
+      id: generatedId,
       name: "Han Solo",
       episodes: ["NEWHOPE", "EMPIRE", "JEDI"],
       planet: "Tatooine",
@@ -86,7 +95,7 @@ describe("CharacterService", () => {
   it("should list characters", async () => {
     const mockCharacters = [
       {
-        id: "1",
+        id: generatedId,
         name: "Han Solo",
         episodes: ["NEWHOPE", "EMPIRE", "JEDI"],
         planet: "Tatooine",
@@ -95,14 +104,14 @@ describe("CharacterService", () => {
 
     dynamoDbMock.on(ScanCommand).resolves({ Items: mockCharacters });
 
-    const characters = await characterService.list(10);
-    expect(characters).toEqual(mockCharacters);
-    expect(characters.characters.length).toBe(1);
+    const result = await characterService.list(10);
+    expect(result.characters).toEqual(mockCharacters);
+    expect(result).toHaveProperty("lastKey", undefined); // As lastKey is not set in this test case
   });
 
-  it("should update a character", async () => {
+  it("should update a character by ID", async () => {
     const updatedCharacter = {
-      id: "1",
+      id: generatedId,
       name: "Han Solo",
       episodes: ["NEWHOPE", "EMPIRE", "JEDI"],
       planet: "Tatooine",
@@ -118,9 +127,9 @@ describe("CharacterService", () => {
     expect(character).toEqual(updatedCharacter);
   });
 
-  it("should delete a character", async () => {
+  it("should delete a character by ID", async () => {
     const mockCharacter = {
-      id: "1",
+      id: generatedId,
       name: "Han Solo",
       episodes: ["NEWHOPE", "EMPIRE", "JEDI"],
       planet: "Tatooine",
@@ -128,7 +137,7 @@ describe("CharacterService", () => {
 
     dynamoDbMock.on(DeleteCommand).resolves({ Attributes: mockCharacter });
 
-    const character = await characterService.remove(generatedId);
+    const character = await characterService.delete(generatedId);
     expect(character).toEqual(mockCharacter);
   });
 
@@ -136,7 +145,7 @@ describe("CharacterService", () => {
     dynamoDbMock
       .on(GetCommand)
       .rejects(new Error("Internal Server Error: Error getting character"));
-    await expect(characterService.findOne(generatedId)).rejects.toThrow(
+    await expect(characterService.get(generatedId)).rejects.toThrow(
       "Internal Server Error: Error getting character"
     );
   });
@@ -145,7 +154,7 @@ describe("CharacterService", () => {
     dynamoDbMock
       .on(ScanCommand)
       .rejects(new Error("Internal Server Error: Error listing characters"));
-    await expect(characterService.findAll()).rejects.toThrow(
+    await expect(characterService.list(10)).rejects.toThrow(
       "Internal Server Error: Error listing characters"
     );
   });
@@ -155,7 +164,7 @@ describe("CharacterService", () => {
       .on(UpdateCommand)
       .rejects(new Error("Internal Server Error: Error updating character"));
     await expect(
-      characterService.update("1", {
+      characterService.update(generatedId, {
         name: "Han Solo",
         episodes: ["NEWHOPE", "EMPIRE", "JEDI"],
         planet: "Tatooine",
@@ -167,15 +176,15 @@ describe("CharacterService", () => {
     dynamoDbMock
       .on(DeleteCommand)
       .rejects(new Error("Internal Server Error: Error deleting character"));
-    await expect(characterService.remove(generatedId)).rejects.toThrow(
+    await expect(characterService.delete(generatedId)).rejects.toThrow(
       "Internal Server Error: Error deleting character"
     );
   });
 
   it("should handle not found errors during get", async () => {
-    dynamoDbMock.on(GetCommand).resolves({ Item: null });
-    await expect(characterService.findOne(generatedId)).rejects.toThrow(
-      'Character with ID "1" not found'
+    dynamoDbMock.on(GetCommand).resolves({ Item: undefined });
+    await expect(characterService.get(generatedId)).rejects.toThrow(
+      `Character with ID "${generatedId}" not found`
     );
   });
 });
