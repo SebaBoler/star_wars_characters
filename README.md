@@ -26,6 +26,7 @@ This project is a backend API for managing Star Wars characters. It supports CRU
 
 ## Future Plan
 
+- [ ] Add Terraform script
 - [ ] Add Graphql
 - [ ] Do some benchmarks with DrizzleORM and Postgresql or Aurora Postgresql
 
