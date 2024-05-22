@@ -1,72 +1,70 @@
-import { DynamoDB } from "aws-sdk";
-import { DynamoDBDocumentClient } from "@aws-sdk/lib-dynamodb";
+import { DynamoDBClient, ReturnValue } from "@aws-sdk/client-dynamodb";
+import {
+  DynamoDBDocumentClient,
+  PutCommand,
+  GetCommand,
+  ScanCommand,
+  UpdateCommand,
+  DeleteCommand,
+} from "@aws-sdk/lib-dynamodb";
 import { Character } from "../models/character";
 
-const dynamoDb = new DynamoDB.DocumentClient({ region: "eu-central-1" });
+const dynamoDb = new DynamoDBClient({ region: "eu-central-1" });
 export const dynamoDBDocumentClient = DynamoDBDocumentClient.from(dynamoDb);
 
-const TABLE_NAME = process.env.TABLE_NAME ?? "Characters";
+// const TABLE_NAME = process.env.TABLE_NAME ?? "Characters";
 
-async function putItem(item: Character): Promise<void> {
-  await dynamoDb
-    .put({
-      TableName: TABLE_NAME,
-      Item: item,
-    })
-    .promise();
-}
+export class DynamoDbClient {
+  private readonly tableName = "Characters";
 
-async function getItem(id: string): Promise<Character> {
-  const result = await dynamoDb
-    .get({
-      TableName: TABLE_NAME,
-      Key: { id },
-    })
-    .promise();
-  return result.Item as Character;
-}
+  async put(item: Character): Promise<void> {
+    await dynamoDBDocumentClient.send(
+      new PutCommand({ TableName: this.tableName, Item: item })
+    );
+  }
 
-async function scanItems(): Promise<Character[]> {
-  const result = await dynamoDb.scan({ TableName: TABLE_NAME }).promise();
-  return result.Items as Character[];
-}
+  async get(id: string): Promise<Character | null> {
+    const result = await dynamoDBDocumentClient.send(
+      new GetCommand({ TableName: this.tableName, Key: { id } })
+    );
+    return (result.Item as Character) || null;
+  }
 
-async function updateItem(id: string, item: Character): Promise<void> {
-  await dynamoDb
-    .update({
-      TableName: TABLE_NAME,
+  async scan(): Promise<Character[]> {
+    const result = await dynamoDBDocumentClient.send(
+      new ScanCommand({ TableName: this.tableName })
+    );
+    return result.Items as Character[];
+  }
+
+  async update(id: string, character: Partial<Character>): Promise<Character> {
+    const updateParams = {
+      TableName: this.tableName,
       Key: { id },
       UpdateExpression:
         "SET #name = :name, episodes = :episodes, planet = :planet",
-      ExpressionAttributeNames: {
-        "#name": "name",
-      },
+      ExpressionAttributeNames: { "#name": "name" },
       ExpressionAttributeValues: {
-        ":name": item.name,
-        ":episodes": item.episodes,
-        ":planet": item.planet,
+        ":name": character?.name,
+        ":episodes": character?.episodes,
+        ":planet": character?.planet,
       },
-    })
-    .promise();
-}
+      ReturnValues: "ALL_NEW" as ReturnValue,
+    };
+    const result = await dynamoDBDocumentClient.send(
+      new UpdateCommand(updateParams)
+    );
+    return result.Attributes as Character;
+  }
 
-async function deleteItem(id: string): Promise<void> {
-  await dynamoDb
-    .delete({
-      TableName: TABLE_NAME,
-      Key: { id },
-    })
-    .promise();
+  async delete(id: string): Promise<Character> {
+    const result = await dynamoDBDocumentClient.send(
+      new DeleteCommand({
+        TableName: this.tableName,
+        Key: { id },
+        ReturnValues: "ALL_OLD",
+      })
+    );
+    return result.Attributes as Character;
+  }
 }
-
-async function itemExists(id: string): Promise<boolean> {
-  const result = await dynamoDb
-    .get({
-      TableName: TABLE_NAME,
-      Key: { id },
-    })
-    .promise();
-  return !!result.Item;
-}
-
-export { putItem, getItem, scanItems, updateItem, deleteItem, itemExists };
