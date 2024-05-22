@@ -1,6 +1,6 @@
 /**
  * @swagger
- * /characters:
+ * /api/v1/characters:
  *   post:
  *     summary: Create a new character
  *     tags: [Characters]
@@ -37,7 +37,7 @@
 
 /**
  * @swagger
- * /characters/{id}:
+ * /api/v1/characters/{id}:
  *   get:
  *     summary: Get a character by ID
  *     tags: [Characters]
@@ -63,7 +63,7 @@
 
 /**
  * @swagger
- * /characters:
+ * /api/v1/characters:
  *   get:
  *     summary: List characters with pagination
  *     tags: [Characters]
@@ -99,7 +99,7 @@
 
 /**
  * @swagger
- * /characters/{id}:
+ * /api/v1/characters/{id}:
  *   put:
  *     summary: Update a character by ID
  *     tags: [Characters]
@@ -145,7 +145,7 @@
 
 /**
  * @swagger
- * /characters/{id}:
+ * /api/v1/characters/{id}:
  *   delete:
  *     summary: Delete a character by ID
  *     tags: [Characters]
