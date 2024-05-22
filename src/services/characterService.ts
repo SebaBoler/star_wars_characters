@@ -5,8 +5,8 @@ import { DynamoDbClient } from "./dynamoDbClient";
 export class CharacterService {
   private readonly dynamoDbClient: DynamoDbClient;
 
-  constructor() {
-    this.dynamoDbClient = new DynamoDbClient();
+  constructor(dynamoDbClient?: DynamoDbClient) {
+    this.dynamoDbClient = dynamoDbClient || new DynamoDbClient();
   }
 
   async create(character: Omit<Character, "id">): Promise<Character> {
@@ -16,25 +16,34 @@ export class CharacterService {
     const newCharacter = { id: uuidv4(), ...character };
     try {
       await this.dynamoDbClient.put(newCharacter);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error creating character", error);
+      if (error.message.includes("Validation Error")) {
+        throw error;
+      }
       throw new Error("Internal Server Error: Error creating character");
     }
     return newCharacter;
   }
 
   async get(id: string): Promise<Character> {
+    if (!id) {
+      throw new Error("Validation Error: ID is required");
+    }
     try {
-      if (!id) {
-        throw new Error("Validation Error: ID is required");
-      }
       const character = await this.dynamoDbClient.get(id);
       if (!character) {
-        throw new Error(`Character with ID "${id}" not found`);
+        throw new Error(`Not Found: Character with ID "${id}" not found`);
       }
       return character;
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error fetching character", error);
+      if (
+        error.message.includes("Not Found") ||
+        error.message.includes("Validation Error")
+      ) {
+        throw error;
+      }
       throw new Error("Internal Server Error: Error fetching character");
     }
   }
