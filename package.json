@@ -3,6 +3,15 @@
   "version": "1.0.0",
   "main": "index.js",
   "license": "MIT",
+  "author": {
+    "name": "Sebastian Pietrzak"
+  },
+  "scripts": {
+    "start": "node dist/index.js",
+    "test": "jest",
+    "build": "tsc",
+    "dev": "ts-node src/app.ts"
+  },
   "dependencies": {
     "@aws-sdk/client-dynamodb": "^3.577.0",
     "@aws-sdk/lib-dynamodb": "^3.577.0",
