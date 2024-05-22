@@ -39,11 +39,27 @@ export class DynamoDbClient {
     return (result.Item as Character) || null;
   }
 
-  async scan(): Promise<Character[]> {
-    const result = await dynamoDBDocumentClient.send(
-      new ScanCommand({ TableName: this.tableName })
-    );
-    return result.Items as Character[];
+  async scan(
+    limit: number,
+    lastKey?: string
+  ): Promise<{ characters: Character[]; lastKey?: string }> {
+    const params: any = {
+      TableName: this.tableName,
+      Limit: limit,
+    };
+
+    if (lastKey) {
+      params.ExclusiveStartKey = { id: lastKey };
+    }
+
+    const result = await dynamoDBDocumentClient.send(new ScanCommand(params));
+
+    const characters = result.Items as Character[];
+    const lastEvaluatedKey = result.LastEvaluatedKey
+      ? result.LastEvaluatedKey.id
+      : undefined;
+
+    return { characters, lastKey: lastEvaluatedKey };
   }
 
   async update(id: string, character: Partial<Character>): Promise<Character> {

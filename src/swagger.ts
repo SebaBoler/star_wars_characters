@@ -15,6 +15,30 @@ const options = {
         url: "http://localhost:3000",
       },
     ],
+    components: {
+      schemas: {
+        Character: {
+          type: "object",
+          properties: {
+            id: {
+              type: "string",
+            },
+            name: {
+              type: "string",
+            },
+            episodes: {
+              type: "array",
+              items: {
+                type: "string",
+              },
+            },
+            planet: {
+              type: "string",
+            },
+          },
+        },
+      },
+    },
   },
   apis: ["./src/handlers/*.ts", "./src/swaggerDocs/*.ts"],
 };

@@ -22,11 +22,51 @@ export class CharacterService {
     return newCharacter;
   }
 
-  async get(id: string) {}
+  async get(id: string): Promise<Character> {
+    try {
+      const character = await this.dynamoDbClient.get(id);
+      if (!character) {
+        throw new Error(`Character with ID "${id}" not found`);
+      }
+      return character;
+    } catch (error) {
+      console.error("Error fetching character", error);
+      throw new Error("Internal Server Error: Error fetching character");
+    }
+  }
 
-  async list() {}
+  async list(
+    limit: number,
+    lastKey?: string
+  ): Promise<{ characters: Character[]; lastKey?: string }> {
+    try {
+      const result = await this.dynamoDbClient.scan(limit, lastKey);
+      return result;
+    } catch (error) {
+      console.error("Error listing characters", error);
+      throw new Error("Internal Server Error: Error listing characters");
+    }
+  }
 
-  async update(id: string, character: Omit<Character, "id">) {}
+  async update(id: string, character: Partial<Character>): Promise<Character> {
+    try {
+      const updatedCharacter = await this.dynamoDbClient.update(id, character);
+      return updatedCharacter;
+    } catch (error) {
+      console.error("Error updating character", error);
+      throw new Error("Internal Server Error: Error updating character");
+    }
+  }
 
-  async delete(id: string): Promise<void> {}
+  async delete(id: string): Promise<void> {
+    try {
+      const deletedCharacter = await this.dynamoDbClient.delete(id);
+      if (!deletedCharacter) {
+        throw new Error(`Character with ID "${id}" not found`);
+      }
+    } catch (error) {
+      console.error("Error deleting character", error);
+      throw new Error("Internal Server Error: Error deleting character");
+    }
+  }
 }
